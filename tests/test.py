@@ -92,6 +92,39 @@ class BaseTestCase(TestCase):
         )
         return response
 
+    def add_bucketlist_item(self, id, content):
+        self.register('John', 'john@example.com')
+        login_response = self.login('john@example.com')
+        data = json.loads(login_response.data.decode())
+        auth_token = data['auth_token']
+        request = '/bucketlists/{}/items'.format(id)
+        response = self.client().post(
+            request,
+            data = json.dumps({
+                'content': content,
+            }),
+            headers = {
+                'Authorization': 'Bearer {}'.format(auth_token)
+            },
+            content_type='application/json'
+        )
+        return response
+
+    def delete_bucketlist_item(self, id, item_id):
+        self.register('John', 'john@example.com')
+        login_response = self.login('john@example.com')
+        data = json.loads(login_response.data.decode())
+        auth_token = data['auth_token']
+        request = '/bucketlists/{}/items/{}'.format(id, item_id)
+        response = self.client().delete(
+            request,
+            headers = {
+                'Authorization': 'Bearer {}'.format(auth_token)
+            },
+            content_type='application/json'
+        )
+        return response
+
     def tearDown(self):
         db.session.close()
         db.drop_all()
