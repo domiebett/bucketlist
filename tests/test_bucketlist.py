@@ -24,6 +24,26 @@ class TestCase(BaseTestCase):
         self.assertTrue(data[0]['date_modified'])
         self.assertTrue(data[0]['date_created'])
 
+    def test_get_single_bucketlist(self):
+        self.add_bucketlist('Bucketlist1')
+        self.add_bucketlist('Bucketlist2')
+        response = self.retrieve_bucketlist(login=True, id=2)
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['id'], 2)
+        self.assertEqual(data['name'], 'Bucketlist2')
+
+    def test_delete_bucketlist(self):
+        self.add_bucketlist('Bucketlist1')
+        self.add_bucketlist('Bucketlist2')
+        self.add_bucketlist('Bucketlist3')
+        response = self.delete_bucketlist(login=True, id=2)
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['message'], 'Successfully deleted.')
+        self.assertEqual(data['id'], 2)
+        bucketlists = BucketList.query.all()
+        self.assertEqual(len(bucketlists), 2)
+
     def test_login_is_required(self):
         response = self.retrieve_bucketlist()
         data = json.loads(response.data.decode())
