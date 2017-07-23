@@ -55,15 +55,36 @@ class BaseTestCase(TestCase):
         )
         return response
 
-    def retrieve_bucketlist(self, login=False):
+    def retrieve_bucketlist(self, login=False, id=None):
         self.register('John', 'john@example.com')
         auth_token = ''
         if login:
             login_response = self.login('john@example.com')
             data = json.loads(login_response.data.decode())
             auth_token = data['auth_token']
+        if id:
+            request = '/bucketlists/{}'.format(id)
+        else:
+            request = '/bucketlists/'
         response = self.client().get(
-            '/bucketlists/',
+            request,
+            headers={
+                'Authorization': 'Bearer {}'.format(auth_token)
+            },
+            content_type='application/json'
+        )
+        return response
+
+    def delete_bucketlist(self, login=False, id=None):
+        self.register('John', 'john@example.com')
+        auth_token = ''
+        if login:
+            login_response = self.login('john@example.com')
+            data = json.loads(login_response.data.decode())
+            auth_token = data['auth_token']
+        request = '/bucketlists/{}'.format(id)
+        response = self.client().delete(
+            request,
             headers={
                 'Authorization': 'Bearer {}'.format(auth_token)
             },
