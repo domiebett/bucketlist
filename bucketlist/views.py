@@ -16,6 +16,7 @@ def create_app(config_name):
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     db.init_app(app)
 
+
     @api.route('/auth/register')
     class Register(Resource):
         """
@@ -175,5 +176,85 @@ def create_app(config_name):
                 }
                 return jsonify(response_obj)
 
+
+    @api.route('/bucketlists/<id>')
+    class SingleBucketList(Resource):
+
+        def get(self, id):
+            auth_header = request.headers.get('Authorization')
+
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+
+            else:
+                auth_token = ''
+
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+
+                if not isinstance(user_id, str):
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlist = user.bucketlists.filter_by(id=id).first()
+                    itemscontent = [item.content for item in bucketlist.items.all()]
+
+                    response_obj = {
+                        'id': bucketlist.id,
+                        'name': bucketlist.name,
+                        'items': itemscontent,
+                        'date_created': bucketlist.date_created,
+                        'date_modified': bucketlist.date_modified,
+                        'created_by': bucketlist.created_by
+                    }
+
+                    return jsonify(response_obj)
+
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+
+                return jsonify(response_obj)
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
+
+        def delete(self, id):
+            auth_header = request.headers.get('Authorization')
+
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+            else:
+                auth_token = ''
+
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+
+                if not isinstance(user_id, str):
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlist = user.bucketlists.filter_by(id=id).first()
+                    bucketlist.delete()
+
+                    response_obj = {
+                        'status': 'success',
+                        'message': 'Successfully deleted.',
+                        'id': bucketlist.id,
+                    }
+                    return jsonify(response_obj)
+
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+                return jsonify(response_obj)
+
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
 
     return app
