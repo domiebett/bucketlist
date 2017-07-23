@@ -133,6 +133,47 @@ def create_app(config_name):
                 }
                 return jsonify(response_obj)
 
-        
+        def post(self):
+            auth_header = request.headers.get("Authorization")
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+            else:
+                auth_token = ""
+
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+                if not isinstance(user_id, str):
+                    post_data = request.get_json()
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlist = BucketList(name=post_data.get('name'), owner=user,
+                                            created_by=user.email)
+                    bucketlist.save()
+
+                    response_obj = []
+                    bucketlists = user.bucketlists.all()
+                    for bucketlist in bucketlists:
+                        itemscontent = [item.content for item in bucketlist.items.all()]
+                        resp = {
+                            'id': bucketlist.id,
+                            'name': bucketlist.name,
+                            'items': itemscontent,
+                            'date_created': bucketlist.date_created,
+                            'date_modified': bucketlist.date_modified,
+                            'created_by': bucketlist.created_by
+                        }
+                        response_obj.append(resp)
+                    return jsonify(response_obj)
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+                return jsonify(response_obj)
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
+
 
     return app
