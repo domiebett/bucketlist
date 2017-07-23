@@ -91,3 +91,48 @@ def create_app(config_name):
                     'message': 'Try again'
                 }
                 return jsonify(responseObject)
+
+    @api.route('/bucketlists/')
+    class BucketLists(Resource):
+        def get(self):
+
+            auth_header = request.headers.get('Authorization')
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+            else:
+                auth_token = ''
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+                if not isinstance(user_id, str):
+                    response_obj = []
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlists = user.bucketlists.all()
+
+                    for bucketlist in bucketlists:
+                        itemscontent = [item.content for item in bucketlist.items.all()]
+                        resp = {
+                            'id' : bucketlist.id,
+                            'name' : bucketlist.name,
+                            'items' : itemscontent,
+                            'date_created' : bucketlist.date_created,
+                            'date_modified' : bucketlist.date_modified,
+                            'created_by' : bucketlist.created_by
+                        }
+                        response_obj.append(resp)
+                    return jsonify(response_obj)
+
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+                return jsonify(response_obj)
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
+
+        
+
+    return app
