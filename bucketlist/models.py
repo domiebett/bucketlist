@@ -87,7 +87,7 @@ class BucketList(db.Model):
     items = db.relationship('ListItem', backref='bcktlst', lazy='dynamic',
                             cascade='all, delete-orphan')
 
-    def edit_name(self, name):
+    def modify(self, name):
         self.name = name
         self.date_modified = datetime.datetime.utcnow()
 
@@ -106,10 +106,18 @@ class ListItem(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(400))
+    date_created = db.Column(db.DateTime(), default=datetime.datetime.utcnow())
+    date_modified = db.Column(db.DateTime(), default=datetime.datetime.utcnow())
+    done = db.Column(db.Boolean(), default=False)
     bucketlist = db.Column(db.Integer, db.ForeignKey('bucketlist.id'))
 
-    def set_content(self, content):
-        self.content = content
+    def modify_name(self, name):
+        self.name = name
+        self.date_modified = datetime.datetime.utcnow()
+
+    def complete_activity(self):
+        self.done = True
+        self.modified = datetime.datetime.utcnow()
 
     def save(self):
         db.session.add(self)
