@@ -33,3 +33,6 @@ celerybeat-schedule
 
 # virtualenv
 env/
+
+#IDE stuff
+.idea/
