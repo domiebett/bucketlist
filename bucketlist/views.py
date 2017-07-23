@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 def create_app(config_name):
-    from .models import User, BucketList
+    from .models import User, BucketList, ListItem
 
     app = Flask(__name__)
     api = Api(app)
@@ -19,9 +19,8 @@ def create_app(config_name):
 
     @api.route('/auth/register')
     class Register(Resource):
-        """
-        User Registration Resource
-        """
+
+        """Registers a user"""
 
         def post(self):
 
@@ -60,9 +59,9 @@ def create_app(config_name):
 
     @api.route('/auth/login')
     class Login(Resource):
-        """
-        User Login Resource
-        """
+
+        """Logs in a user"""
+
         def post(self):
             # get the post data
             post_data = request.get_json()
@@ -97,6 +96,7 @@ def create_app(config_name):
     class BucketLists(Resource):
         def get(self):
 
+            """Return all bucketlists in the system."""
             auth_header = request.headers.get('Authorization')
             if auth_header:
                 auth_token = auth_header.split(" ")[1]
@@ -110,7 +110,12 @@ def create_app(config_name):
                     bucketlists = user.bucketlists.all()
 
                     for bucketlist in bucketlists:
-                        itemscontent = [item.content for item in bucketlist.items.all()]
+                        itemscontent = [{'id': item.id,
+                                         'name': item.name,
+                                         'date_created': item.date_created,
+                                         'date_modified': item.date_modified,
+                                         'done': False, }
+                                        for item in bucketlist.items.all()]
                         resp = {
                             'id' : bucketlist.id,
                             'name' : bucketlist.name,
@@ -135,6 +140,9 @@ def create_app(config_name):
                 return jsonify(response_obj)
 
         def post(self):
+
+            """Adds a bucketlist."""
+
             auth_header = request.headers.get("Authorization")
             if auth_header:
                 auth_token = auth_header.split(" ")[1]
@@ -153,7 +161,12 @@ def create_app(config_name):
                     response_obj = []
                     bucketlists = user.bucketlists.all()
                     for bucketlist in bucketlists:
-                        itemscontent = [item.content for item in bucketlist.items.all()]
+                        itemscontent = [{'id': item.id,
+                                         'name': item.name,
+                                         'date_created': item.date_created,
+                                         'date_modified': item.date_modified,
+                                         'done': False, }
+                                        for item in bucketlist.items.all()]
                         resp = {
                             'id': bucketlist.id,
                             'name': bucketlist.name,
@@ -181,6 +194,9 @@ def create_app(config_name):
     class SingleBucketList(Resource):
 
         def get(self, id):
+
+            """Returns a single bucket list with the id"""
+
             auth_header = request.headers.get('Authorization')
 
             if auth_header:
@@ -195,7 +211,12 @@ def create_app(config_name):
                 if not isinstance(user_id, str):
                     user = User.query.filter_by(id=user_id).first()
                     bucketlist = user.bucketlists.filter_by(id=id).first()
-                    itemscontent = [item.content for item in bucketlist.items.all()]
+                    itemscontent = [{'id':item.id,
+                                     'name':item.name,
+                                     'date_created':item.date_created,
+                                     'date_modified':item.date_modified,
+                                     'done': False,}
+                                    for item in bucketlist.items.all()]
 
                     response_obj = {
                         'id': bucketlist.id,
@@ -222,6 +243,8 @@ def create_app(config_name):
                 return jsonify(response_obj)
 
         def delete(self, id):
+
+            """Deletes bucketlist with the primary key of 'id'."""
             auth_header = request.headers.get('Authorization')
 
             if auth_header:
@@ -241,6 +264,94 @@ def create_app(config_name):
                         'status': 'success',
                         'message': 'Successfully deleted.',
                         'id': bucketlist.id,
+                    }
+                    return jsonify(response_obj)
+
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+                return jsonify(response_obj)
+
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
+
+    @api.route('/bucketlists/<id>/items')
+    class BucketListItem(Resource):
+
+        def post(self, id):
+
+            """Adds item to bucketlist with the id"""
+
+            auth_header = request.headers.get("Authorization")
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+            else:
+                auth_token = ""
+
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+
+                if not isinstance(user_id, str):
+                    post_data = request.get_json()
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlist = user.bucketlists.filter_by(id=id).first()
+                    list_item = ListItem(name=post_data.get('content'), bcktlst=bucketlist)
+                    list_item.save()
+
+                    response_obj = {
+                        'status': 'success',
+                        'name': list_item.name,
+                        'bucketlist_id': bucketlist.id,
+                        'message': 'Item added successfully'
+                    }
+                    return jsonify(response_obj)
+
+                response_obj = {
+                    'status': 'fail',
+                    'message': user_id
+                }
+                return jsonify(response_obj)
+
+            else:
+                response_obj = {
+                    'status': 'fail',
+                    'message': 'Provide a valid auth token.'
+                }
+                return jsonify(response_obj)
+
+    @api.route('/bucketlists/<id>/items/<item_id>')
+    class BucketListItems(Resource):
+
+        def delete(self, id, item_id):
+
+            """Deletes items from bucketlists with id as item id."""
+
+            auth_header = request.headers.get('Authorization')
+
+            if auth_header:
+                auth_token = auth_header.split(" ")[1]
+            else:
+                auth_token = ''
+
+            if auth_token:
+                user_id = User.decode_auth_token(auth_token)
+
+                if not isinstance(user_id, str):
+                    user = User.query.filter_by(id=user_id).first()
+                    bucketlist = user.bucketlists.filter_by(id=id).first()
+                    item = bucketlist.items.filter_by(id=item_id).first()
+                    item.delete()
+
+                    response_obj = {
+                        'status': 'success',
+                        'message': 'Successfully deleted.',
+                        'bucketlist_id': bucketlist.id,
+                        'id': item.id,
                     }
                     return jsonify(response_obj)
 
