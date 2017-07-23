@@ -11,11 +11,11 @@ class TestConfig(Config):
 
 class DevConfig(Config):
     DEBUG = True
-    SQLALCHEMY_DATABASE_URI = "postgressql://localhost/bucketlist_api"
+    SQLALCHEMY_DATABASE_URI = "postgresql://flask:@localhost/bucketlist_api"
 
 class ProdConfig(Config):
     DEBUG = False
-    SQLALCHEMY_DATABASE_URI = "postgressql://localhost/bucketlist_api"
+    SQLALCHEMY_DATABASE_URI = "postgressql://dominicbett:@localhost/bucketlist_api"
 
 
 config = {
