@@ -10,7 +10,7 @@ db = SQLAlchemy()
 def create_app(config_name):
     from .models import User, BucketList, ListItem
     from .tools.tools import get_user, bucketlist_data,\
-        doesnt_exist
+        doesnt_exist, item_data
 
     app = Flask(__name__)
     api = Api(app)
@@ -103,6 +103,7 @@ def create_app(config_name):
         def get(self):
 
             """Return all bucketlists in the system."""
+
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
 
@@ -220,6 +221,27 @@ def create_app(config_name):
 
     @api.route('/bucketlists/<id>/items/<item_id>')
     class BucketListItems(Resource):
+
+        @api.header('Authorization', 'JWT Token', required=True)
+        def put(self, id, item_id):
+
+            """Updates the item with the item id"""
+
+            auth_token = request.headers.get("Authorization")
+            user = get_user(auth_token)
+
+            if isinstance(user, User):
+                put_data = request.get_json()
+                bucketlist = user.bucketlists.filter_by(id=id).first()
+                if not bucketlist:
+                    return doesnt_exist("BucketList"), 404
+                item = bucketlist.items.filter_by(id=item_id).first()
+                if not item:
+                    return doesnt_exist("Item"), 404
+                item.modify_name(put_data['name'])
+                item = bucketlist.items.filter_by(id=item_id).first()
+                return jsonify(item_data(item))
+
 
         @api.header('Authorization', 'JWT Token', required=True)
         def delete(self, id, item_id):
