@@ -36,9 +36,10 @@ def bucketlist_data(bucketlist):
     return resp
 
 def item_data(item):
-    item_content = {'id': item.id,
-         'name': item.name,
-         'date_created': item.date_created,
-         'date_modified': item.date_modified,
-         'done': False, }
-    return item_content
+    resp = {
+        'id': item.id,
+        'name': item.name,
+        'date_created': item.date_created,
+        'date_modified': item.date_modified,
+        'done': item.done, }
+    return resp
