@@ -36,3 +36,7 @@ env/
 
 #IDE stuff
 .idea/
+
+# migrations
+
+migrations/
