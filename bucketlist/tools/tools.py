@@ -23,11 +23,7 @@ def doesnt_exist(name):
     }
 
 def bucketlist_data(bucketlist):
-    itemscontent = [{'id': item.id,
-                     'name': item.name,
-                     'date_created': item.date_created,
-                     'date_modified': item.date_modified,
-                     'done': False, }
+    itemscontent = [item_data(item)
                     for item in bucketlist.items.all()]
     resp = {
         'id': bucketlist.id,
@@ -38,3 +34,11 @@ def bucketlist_data(bucketlist):
         'created_by': bucketlist.created_by
     }
     return resp
+
+def item_data(item):
+    item_content = {'id': item.id,
+         'name': item.name,
+         'date_created': item.date_created,
+         'date_modified': item.date_modified,
+         'done': False, }
+    return item_content
