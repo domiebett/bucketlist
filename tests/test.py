@@ -49,7 +49,7 @@ class BaseTestCase(TestCase):
                 'name': name
             }),
             headers={
-                'Authorization': 'Bearer {}'.format(auth_token)
+                'Authorization': auth_token
             },
             content_type='application/json'
         )
@@ -69,7 +69,25 @@ class BaseTestCase(TestCase):
         response = self.client().get(
             request,
             headers={
-                'Authorization': 'Bearer {}'.format(auth_token)
+                'Authorization': auth_token
+            },
+            content_type='application/json'
+        )
+        return response
+
+    def update_bucketlist(self, id, name):
+        self.register('John', 'john@example.com')
+        login_response = self.login('john@example.com')
+        data = json.loads(login_response.data.decode())
+        auth_token = data['auth_token']
+        request = '/bucketlists/{}'.format(id)
+        response = self.client().put(
+            request,
+            data=json.dumps({
+                'name': name,
+            }),
+            headers={
+                'Authorization': auth_token
             },
             content_type='application/json'
         )
@@ -86,13 +104,13 @@ class BaseTestCase(TestCase):
         response = self.client().delete(
             request,
             headers={
-                'Authorization': 'Bearer {}'.format(auth_token)
+                'Authorization': auth_token
             },
             content_type='application/json'
         )
         return response
 
-    def add_bucketlist_item(self, id, content):
+    def add_bucketlist_item(self, id, name):
         self.register('John', 'john@example.com')
         login_response = self.login('john@example.com')
         data = json.loads(login_response.data.decode())
@@ -101,10 +119,10 @@ class BaseTestCase(TestCase):
         response = self.client().post(
             request,
             data = json.dumps({
-                'content': content,
+                'name': name,
             }),
             headers = {
-                'Authorization': 'Bearer {}'.format(auth_token)
+                'Authorization': auth_token
             },
             content_type='application/json'
         )
@@ -130,8 +148,8 @@ class BaseTestCase(TestCase):
         login_response = self.login('john@example.com')
         data = json.loads(login_response.data.decode())
         auth_token = data['auth_token']
-        request = '/bucketlists/{}/items/{}'.format(id, item_id, content)
-        response = self.client().delete(
+        request = '/bucketlists/{}/items/{}'.format(id, item_id, name)
+        response = self.client().put(
             request,
             headers = {
                 'Authorization': auth_token
