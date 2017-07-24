@@ -32,6 +32,13 @@ class TestCase(BaseTestCase):
         self.assertEqual(data['id'], 2)
         self.assertEqual(data['name'], 'Bucketlist2')
 
+    def test_update_bucketlist(self):
+        self.add_bucketlist('Bucketlist1')
+        response = self.update_bucketlist(1, "Modified Name")
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['name'], "Modified Name")
+        self.assertNotEqual(data['date_modified'], data['date_created'])
+
     def test_delete_bucketlist(self):
         self.add_bucketlist('Bucketlist1')
         self.add_bucketlist('Bucketlist2')
@@ -48,4 +55,4 @@ class TestCase(BaseTestCase):
         data = json.loads(response.data.decode())
         self.assertEqual(data['status'], 'fail')
         self.assertEqual(data['message'],
-                         'Provide a valid auth token.')
+                         'Provide a valid auth token')
