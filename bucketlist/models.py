@@ -90,6 +90,7 @@ class BucketList(db.Model):
     def modify(self, name):
         self.name = name
         self.date_modified = datetime.datetime.utcnow()
+        self.save()
 
     def save(self):
         db.session.add(self)
@@ -114,10 +115,12 @@ class ListItem(db.Model):
     def modify_name(self, name):
         self.name = name
         self.date_modified = datetime.datetime.utcnow()
+        self.save()
 
     def complete_activity(self):
         self.done = True
         self.modified = datetime.datetime.utcnow()
+        self.save()
 
     def save(self):
         db.session.add(self)
