@@ -32,7 +32,5 @@ class TestCase(BaseTestCase):
         self.add_bucketlist_item(1, "Run a marathon")
         response = self.update_bucketlist_item(id=1, item_id=1, name="Sky dive")
         data = json.loads(response.data.decode())
-        db_item = ListItem.query.all().first()
-        self.assertEqual(db_item.name, "Skydive")
         self.assertEqual(data['name'], "Sky dive")
-        self.assertNotEqual(data['data_modified'], data['date_created'])
+        self.assertNotEqual(data['date_modified'], data['date_created'])
