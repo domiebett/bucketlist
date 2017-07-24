@@ -167,6 +167,24 @@ def create_app(config_name):
                 return user, 404
 
         @api.header('Authorization', 'JWT Token', required=True)
+        def put(self, id):
+            auth_token = request.headers.get("Authorization")
+            user = get_user(auth_token)
+
+            if isinstance(user, User):
+                put_data = request.get_json()
+                bucketlist = user.bucketlists.filter_by(id=id).first()
+
+                if not bucketlist:
+                    return doesnt_exist("BucketList"), 404
+                bucketlist.modify_name(put_data['name'])
+                bucketlist = user.bucketlists.filter_by(id=id).first()
+                return jsonify(bucketlist_data(bucketlist))
+
+            else:
+                return user, 404
+
+        @api.header('Authorization', 'JWT Token', required=True)
         def delete(self, id):
 
             """Deletes bucketlist with the primary key of 'id'."""
@@ -205,7 +223,7 @@ def create_app(config_name):
                 bucketlist = user.bucketlists.filter_by(id=id).first()
                 if not bucketlist:
                     return doesnt_exist("BucketList"), 404
-                list_item = ListItem(name=post_data.get('content'), bcktlst=bucketlist)
+                list_item = ListItem(name=post_data.get('name'), bcktlst=bucketlist)
                 list_item.save()
 
                 response_obj = {
@@ -263,7 +281,7 @@ def create_app(config_name):
                 response_obj = {
                     'status': 'success',
                     'message': 'Successfully deleted.',
-                }, 200
+                }
                 return jsonify(response_obj)
 
             else:
