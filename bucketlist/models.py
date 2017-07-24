@@ -87,7 +87,7 @@ class BucketList(db.Model):
     items = db.relationship('ListItem', backref='bcktlst', lazy='dynamic',
                             cascade='all, delete-orphan')
 
-    def modify(self, name):
+    def modify_name(self, name):
         self.name = name
         self.date_modified = datetime.datetime.utcnow()
         self.save()
