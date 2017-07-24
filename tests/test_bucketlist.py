@@ -38,11 +38,10 @@ class TestCase(BaseTestCase):
         self.add_bucketlist('Bucketlist3')
         response = self.delete_bucketlist(login=True, id=2)
         data = json.loads(response.data.decode())
-        self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['message'], 'Successfully deleted.')
-        self.assertEqual(data['id'], 2)
         bucketlists = BucketList.query.all()
         self.assertEqual(len(bucketlists), 2)
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['message'], 'Successfully deleted.')
 
     def test_login_is_required(self):
         response = self.retrieve_bucketlist()
