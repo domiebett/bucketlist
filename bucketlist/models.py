@@ -1,9 +1,10 @@
 import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import jwt
-from bucketlist.views import db
+from flask_sqlalchemy import SQLAlchemy
 from config import Config
 
+db = SQLAlchemy()
 
 class User(db.Model):
 
