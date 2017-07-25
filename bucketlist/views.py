@@ -2,14 +2,10 @@ from flask import request, jsonify
 from flask import Flask
 from flask_restplus import Api, Resource
 from config import config
-from flask_sqlalchemy import SQLAlchemy
-
-
-db = SQLAlchemy()
+from bucketlist.models import db, User, BucketList, ListItem
 
 def create_app(config_name):
-    from .models import User, BucketList, ListItem
-    from .tools.tools import get_user, bucketlist_data,\
+    from .lib.tools import get_user, bucketlist_data,\
         doesnt_exist, item_data
 
     app = Flask(__name__)
@@ -23,7 +19,13 @@ def create_app(config_name):
 
         """Registers a user"""
 
+        @api.expect('name', required=True)
+        @api.expect('email', required=True)
+        @api.expect('password', required=True)
         def post(self):
+
+            """Receives post request with name, password and email, registers user
+            and returns auth_token"""
 
             post_data = request.get_json()
             if not post_data.get('email'):
@@ -66,8 +68,13 @@ def create_app(config_name):
 
         """Logs in a user"""
 
+        @api.expect('email', required=True)
+        @api.expect('password', required=True)
         def post(self):
-            # get the post data
+
+            """Receives email, password and logs returns auth_token
+            for user to login to program with."""
+
             post_data = request.get_json()
             try:
                 email = post_data.get('email')
@@ -102,13 +109,15 @@ def create_app(config_name):
         @api.header('Authorization', 'JWT Token', required=True)
         def get(self):
 
-            """Return all bucketlists in the system."""
+            """Receives get request and returns all bucketlists
+            that belong to logged in user"""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
 
             if isinstance(user, User):
                 bucketlists = user.bucketlists.all()
+                bukt = BucketList.query.all()
                 if not bucketlists:
                     return {
                         'message': 'User has no bucketlists',
@@ -123,9 +132,12 @@ def create_app(config_name):
                 return user, 404
 
         @api.header('Authorization', 'JWT Token', required=True)
+        @api.expect('name', required=True)
         def post(self):
 
-            """Adds a bucketlist."""
+            """Receives post request with bucketlist name and
+            adds a bucketlist with given name. Returns the added
+            bucketlist"""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
@@ -152,7 +164,8 @@ def create_app(config_name):
         @api.header('Authorization', 'JWT Token', required=True)
         def get(self, id):
 
-            """Returns a single bucket list with the id"""
+            """Receives get request with a bucketlist id and returns the
+            bucketlist"""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
@@ -167,7 +180,12 @@ def create_app(config_name):
                 return user, 404
 
         @api.header('Authorization', 'JWT Token', required=True)
+        @api.expect('name', required=True)
         def put(self, id):
+
+            """Receives a put request with bucketlist id, updates the
+            bucketlist and returns the bucketlist."""
+
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
 
@@ -187,7 +205,8 @@ def create_app(config_name):
         @api.header('Authorization', 'JWT Token', required=True)
         def delete(self, id):
 
-            """Deletes bucketlist with the primary key of 'id'."""
+            """Receives a delete request with a bucketlist id and
+            deletes the bucketlist. Returns message is succesful"""
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
 
@@ -211,9 +230,11 @@ def create_app(config_name):
     class BucketListItem(Resource):
 
         @api.header('Authorization', 'JWT Token', required=True)
+        @api.expect('name', required=True)
         def post(self, id):
 
-            """Adds item to bucketlist with the id"""
+            """Receives post request with bucketlist id and item name.
+            Adds a bucketlist item and returns it."""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
@@ -243,7 +264,8 @@ def create_app(config_name):
         @api.header('Authorization', 'JWT Token', required=True)
         def put(self, id, item_id):
 
-            """Updates the item with the item id"""
+            """Receives put request with id, item id and item name.
+            Modifies the item and returns it."""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
@@ -264,7 +286,8 @@ def create_app(config_name):
         @api.header('Authorization', 'JWT Token', required=True)
         def delete(self, id, item_id):
 
-            """Deletes items from bucketlists with id as item id."""
+            """Recieves delete request with bucketlist id and bucket item
+            id. Deletes the item."""
 
             auth_token = request.headers.get("Authorization")
             user = get_user(auth_token)
