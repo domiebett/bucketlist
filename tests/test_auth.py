@@ -1,6 +1,5 @@
-from . test import BaseTestCase, db
+from tests.test import BaseTestCase
 import json
-from bucketlist.models import User
 
 class TestRegister(BaseTestCase):
 
