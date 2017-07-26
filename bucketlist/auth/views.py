@@ -8,7 +8,7 @@ from bucketlist.lib.serializers import registration_input,\
 
 ns = api.namespace('auth', description='Operations related to user authentication')
 
-@ns.route('/auth/register')
+@ns.route('/register')
 class Register(Resource):
 
     """Registers a user"""
@@ -55,7 +55,7 @@ class Register(Resource):
             }
             return jsonify(response)
 
-@ns.route('/auth/login')
+@ns.route('/login')
 class Login(Resource):
 
     """Logs in a user"""
