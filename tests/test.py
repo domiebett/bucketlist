@@ -1,9 +1,8 @@
 from unittest import TestCase
 import json
-from bucketlist.views import create_app
+from bucketlist import create_app
 from bucketlist.models import db, User
-from config import config
-
+import requests
 
 class BaseTestCase(TestCase):
 
@@ -16,6 +15,7 @@ class BaseTestCase(TestCase):
         db.create_all()
 
     def register(self, name, email):
+
         response = self.client().post(
             '/auth/register',
             data=json.dumps({
@@ -155,7 +155,8 @@ class BaseTestCase(TestCase):
                 'Authorization': auth_token
             },
             data= json.dumps({
-                'name': name
+                'name': name,
+                'done' : False
             }),
             content_type = 'application/json'
         )
