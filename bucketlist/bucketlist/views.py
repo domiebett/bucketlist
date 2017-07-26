@@ -1,15 +1,17 @@
 from flask import request, jsonify
 from flask_restplus import Resource
+from flask_paginate import Pagination
 from bucketlist.models import User, BucketList, ListItem
 from bucketlist.lib.serializers import api
 from bucketlist.lib.tools import get_user, bucketlist_data,\
     doesnt_exist, item_data
 from bucketlist.lib.serializers import bucket_list_input,\
     bucket_item_input
+from bucketlist.lib.parsers import paginate_or_search
 
 ns = api.namespace('bucketlists', description='Bucketlist related operations')
 
-@api.route('/bucketlists/')
+@ns.route('/')
 class BucketLists(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
@@ -22,14 +24,21 @@ class BucketLists(Resource):
         user = get_user(auth_token)
 
         if isinstance(user, User):
-            bucketlists = user.bucketlists.all()
-            bukt = BucketList.query.all()
+            args = paginate_or_search.parse_args(request)
+            page = args.get('page', 1)
+            limit = args.get('limit', 20)
+            q = args.get('q')
+            if q:
+                bucketlists = user.bucketlists.filter(BucketList.name.ilike('%'+q+'%')).paginate(page, limit, False)
+            else:
+                bucketlists = user.bucketlists.paginate(page, limit, False)
+
             if not bucketlists:
                 return {
                     'message': 'User has no bucketlists',
                 }
             response_obj = []
-            for bucketlist in bucketlists:
+            for bucketlist in bucketlists.items:
                 resp = bucketlist_data(bucketlist)
                 response_obj.append(resp)
             return jsonify(response_obj)
@@ -64,7 +73,7 @@ class BucketLists(Resource):
         else:
             return user, 404
 
-@api.route('/bucketlists/<id>')
+@ns.route('/<int:id>')
 class SingleBucketList(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
@@ -119,7 +128,7 @@ class SingleBucketList(Resource):
         if isinstance(user, User):
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                doesnt_exist("BucketList"), 404
+                return doesnt_exist("BucketList"), 404
             bucketlist.delete()
 
             response_obj = {
@@ -132,7 +141,7 @@ class SingleBucketList(Resource):
         else:
             return user, 404
 
-@api.route('/bucketlists/<id>/items')
+@ns.route('/<int:id>/items')
 class BucketListItem(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
@@ -164,7 +173,7 @@ class BucketListItem(Resource):
         else:
             return user
 
-@api.route('/bucketlists/<id>/items/<item_id>')
+@ns.route('/<int:id>/items/<item_id>')
 class BucketListItems(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
