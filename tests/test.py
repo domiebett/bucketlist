@@ -69,9 +69,8 @@ class BaseTestCase(TestCase):
         response = self.client().get(
             request,
             headers={
-                'Authorization': auth_token
+                'Authorization': auth_token,
             },
-            content_type='application/json'
         )
         return response
 
