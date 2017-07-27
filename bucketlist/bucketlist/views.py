@@ -1,12 +1,11 @@
-from flask import request, jsonify
+from flask import request, jsonify, abort
 from flask_restplus import Resource
 from flask_paginate import Pagination
 from bucketlist.models import User, BucketList, ListItem
 from bucketlist.lib.serializers import api
-from bucketlist.lib.tools import get_user, bucketlist_data,\
-    doesnt_exist, item_data
+from bucketlist.lib.tools import get_user, bucket_content
 from bucketlist.lib.serializers import bucket_list_input,\
-    bucket_item_input
+    bucket_item_input, bucket_list_items, bucket_list
 from bucketlist.lib.parsers import paginate_or_search
 
 ns = api.namespace('bucketlists', description='Bucketlist related operations')
@@ -15,6 +14,9 @@ ns = api.namespace('bucketlists', description='Bucketlist related operations')
 class BucketLists(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.response(404, 'bucketlist not found')
+    @api.response(401, 'Unauthorised access')
+    @api.marshal_list_with(bucket_list)
     def get(self):
 
         """Receives get request and returns all bucketlists
@@ -22,31 +24,40 @@ class BucketLists(Resource):
 
         auth_token = request.headers.get("Authorization")
         user = get_user(auth_token)
+        if not isinstance(user, User):
+            abort(401, user)
 
-        if isinstance(user, User):
-            args = paginate_or_search.parse_args(request)
-            page = args.get('page', 1)
-            limit = args.get('limit', 20)
-            q = args.get('q')
-            if q:
-                bucketlists = user.bucketlists.filter(BucketList.name.ilike('%'+q+'%')).paginate(page, limit, False)
-            else:
-                bucketlists = user.bucketlists.paginate(page, limit, False)
-
-            if not bucketlists:
-                return {
-                    'message': 'User has no bucketlists',
-                }
-            response_obj = []
-            for bucketlist in bucketlists.items:
-                resp = bucketlist_data(bucketlist)
-                response_obj.append(resp)
-            return jsonify(response_obj)
-
+        args = paginate_or_search.parse_args(request)
+        page = args.get('page', 1)
+        limit = args.get('limit', 20)
+        q = args.get('q')
+        if q:
+            bucketlists = user.bucketlists.filter(
+                BucketList.name.ilike('%'+q+'%'))\
+                .paginate(page, limit, False)
         else:
-            return user, 404
+            bucketlists = user.bucketlists.paginate(page, limit, False)
+
+        if not bucketlists:
+            abort(404)
+
+        response = []
+        for bucketlist in bucketlists.items:
+            items = [item for item in bucketlist.items.all()]
+            resp = {
+                'id': bucketlist.id,
+                'name': bucketlist.name,
+                'items': items,
+                'date_created': bucketlist.date_created,
+                'date_modified': bucketlist.date_modified,
+                'created_by': bucketlist.created_by
+            }
+            response.append(resp)
+        return response, 200
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.marshal_with(bucket_list)
+    @api.response(401, 'Unauthorised access')
     @api.expect(bucket_list_input)
     def post(self):
 
@@ -58,25 +69,33 @@ class BucketLists(Resource):
         user = get_user(auth_token)
 
         if isinstance(user, User):
+
             post_data = request.get_json()
             bucketlist = BucketList(name=post_data.get('name'), owner=user,
                                     created_by=user.email)
             bucketlist.save()
-
-            response_obj = []
-            bucketlists = user.bucketlists.all()
-            for bucketlist in bucketlists:
-                resp = bucketlist_data(bucketlist)
-                response_obj.append(resp)
-            return jsonify(response_obj)
+            items = [item for item in bucketlist.items.all()]
+            response = {
+                'id': bucketlist.id,
+                'name': bucketlist.name,
+                'items': items,
+                'date_created': bucketlist.date_created,
+                'date_modified': bucketlist.date_modified,
+                'created_by': bucketlist.created_by
+            }
+            return response, 201
 
         else:
-            return user, 404
+            abort(401, user)
+
 
 @ns.route('/<int:id>')
 class SingleBucketList(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.response(404, 'bucketlist doesnt exist')
+    @api.response(401, 'Unauthorised access')
+    @api.marshal_with(bucket_list)
     def get(self, id):
 
         """Receives get request with a bucketlist id and returns the
@@ -88,13 +107,16 @@ class SingleBucketList(Resource):
         if isinstance(user, User):
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
-            response_obj = bucketlist_data(bucketlist)
-            return jsonify(response_obj)
+                abort(404)
+
+            return bucket_content(bucketlist), 200
+
         else:
-            return user, 404
+            return user, 401
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.response(404, 'Bucketlist doesnt exist')
+    @api.marshal_with(bucket_list)
     @api.expect(bucket_list_input)
     def put(self, id):
 
@@ -109,15 +131,17 @@ class SingleBucketList(Resource):
             bucketlist = user.bucketlists.filter_by(id=id).first()
 
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
+                abort(404)
             bucketlist.modify_name(put_data['name'])
             bucketlist = user.bucketlists.filter_by(id=id).first()
-            return jsonify(bucketlist_data(bucketlist))
+            return bucket_content(bucketlist), 201
 
         else:
-            return user, 404
+            return user, 401
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.response(401, 'Unauthorised access')
+    @api.response(404, 'Bucketlist doesnt exist')
     def delete(self, id):
 
         """Receives a delete request with a bucketlist id and
@@ -128,23 +152,25 @@ class SingleBucketList(Resource):
         if isinstance(user, User):
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
+                abort(404)
             bucketlist.delete()
 
-            response_obj = {
+            response = {
                 'status': 'success',
                 'message': 'Successfully deleted.',
                 'id': bucketlist.id,
             }
-            return jsonify(response_obj)
+            return response, 410
 
         else:
-            return user, 404
+            abort(401, user)
 
 @ns.route('/<int:id>/items')
 class BucketListItem(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.marshal_with(bucket_list_items)
+    @api.response(404, 'Bucketlist doesnt exist')
     @api.expect(bucket_item_input)
     def post(self, id):
 
@@ -158,25 +184,22 @@ class BucketListItem(Resource):
             post_data = request.get_json()
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
+                abort(404)
             list_item = ListItem(name=post_data.get('name'), bcktlst=bucketlist)
             list_item.save()
 
-            response_obj = {
-                'status': 'success',
-                'name': list_item.name,
-                'bucketlist_id': bucketlist.id,
-                'message': 'Item added successfully'
-            }
-            return jsonify(response_obj)
+            return list_item, 201
 
         else:
-            return user
+            return user, 401
 
 @ns.route('/<int:id>/items/<item_id>')
 class BucketListItems(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.marshal_with(bucket_list_items)
+    @api.response(401, 'Unauthorised access')
+    @api.response(404, 'Bucketlist or item doesnt exist')
     @api.expect(bucket_item_input)
     def put(self, id, item_id):
 
@@ -190,20 +213,23 @@ class BucketListItems(Resource):
             put_data = request.get_json()
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
+                abort(404, "Bucketlist doesnt exist")
             item = bucketlist.items.filter_by(id=item_id).first()
             if not item:
-                return doesnt_exist("Item"), 404
+                abort(404, "Item doesnt exist")
 
             if put_data['name']:
                 item.modify_name(put_data['name'])
             if put_data['done']:
                 item.complete_activity()
             item = bucketlist.items.filter_by(id=item_id).first()
-            return jsonify(item_data(item))
-
+            return item, 201
+        else:
+            abort(401, user)
 
     @api.header('Authorization', 'JWT Token', required=True)
+    @api.response(401, 'Unauthorised access')
+    @api.response(404, 'Bucketlist or Item doesnt exist')
     def delete(self, id, item_id):
 
         """Recieves delete request with bucketlist id and bucket item
@@ -215,17 +241,17 @@ class BucketListItems(Resource):
         if isinstance(user, User):
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
-                return doesnt_exist("BucketList"), 404
+                abort(404, "Bucketlist doesnt exist")
             item = bucketlist.items.filter_by(id=item_id).first()
             if not item:
-                return doesnt_exist("Item"), 404
+                abort(404, "Item doesnt exist")
             item.delete()
 
             response_obj = {
                 'status': 'success',
                 'message': 'Successfully deleted.',
             }
-            return jsonify(response_obj)
+            return response_obj, 410
 
         else:
-            return user
+            abort(401, user)
