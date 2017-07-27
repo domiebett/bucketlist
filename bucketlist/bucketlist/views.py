@@ -11,6 +11,8 @@ from bucketlist.lib.parsers import paginate_or_search
 ns = api.namespace('bucketlists', description='Bucketlist related operations')
 
 @ns.route('/')
+@api.doc(params={'q': 'search string'})
+@api.doc(params={'limit': 'search limit'})
 class BucketLists(Resource):
 
     @api.header('Authorization', 'JWT Token', required=True)
@@ -29,7 +31,7 @@ class BucketLists(Resource):
 
         args = paginate_or_search.parse_args(request)
         page = args.get('page', 1)
-        limit = args.get('limit', 20)
+        limit = args.get('limit')
         q = args.get('q')
         if q:
             bucketlists = user.bucketlists.filter(
