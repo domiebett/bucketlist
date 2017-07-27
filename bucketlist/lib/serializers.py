@@ -12,11 +12,31 @@ log_in_input = api.model('Login', {
     'password' : fields.String(required=True, description="User Password")
 })
 
-bucket_list_input = api.model('Login', {
-    'name' : fields.String(required=True, description="User Name")
+bucket_list_input = api.model('bucket-edit', {
+    'name' : fields.String(required=True, description="Name of bucketlist")
 })
 
-bucket_item_input = api.model('edit', {
-    'name': fields.String(required=True, description='name of bucketlist or bucket item'),
+bucket_item_input = api.model('edit-edit', {
+    'name': fields.String(required=True, description='name of bucket list item'),
     'done': fields.Boolean(required=True, description='status of the bucketlist item'),
+})
+
+bucket_list_items = api.model('bucket_list_items',{
+    'id': fields.Integer(readOnly=True, description='identifier for bucketlist item'),
+    'name': fields.String(required=True, description='name for bucketlist item'),
+    'date_created': fields.DateTime,
+    'date_modified': fields.DateTime,
+    'done': fields.Boolean(required=True, description='status of bucketlist item'),
+})
+
+bucket_list = api.model('bucketlists', {
+    'id': fields.Integer(readOnly=True,
+                         description='identifier for the bucketlis'),
+    'name': fields.String(required=True, description='name of the bucket lis'),
+    'items': fields.List(fields.Nested(bucket_list_items),
+                         description='Bucketlist items'),
+    'date_created': fields.DateTime,
+    'date_modified': fields.DateTime,
+    'created_by': fields.String(required=True,
+                                description='user email for the bucketlist owner')
 })
