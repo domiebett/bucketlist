@@ -1,8 +1,7 @@
 from unittest import TestCase
 import json
 from bucketlist import create_app
-from bucketlist.models import db, User
-import requests
+from bucketlist.models import db
 
 class BaseTestCase(TestCase):
 
@@ -38,11 +37,14 @@ class BaseTestCase(TestCase):
         )
         return response
 
-    def add_bucketlist(self, name):
+    def get_auth_token(self):
         self.register('John', 'john@example.com')
         login_response = self.login('john@example.com')
         data = json.loads(login_response.data.decode())
-        auth_token = data['auth_token']
+        return data['auth_token']
+
+    def add_bucketlist(self, name):
+        auth_token = self.get_auth_token()
         response = self.client().post(
             '/bucketlists/',
             data=json.dumps({
@@ -56,12 +58,9 @@ class BaseTestCase(TestCase):
         return response
 
     def retrieve_bucketlist(self, login=False, id=None):
-        self.register('John', 'john@example.com')
         auth_token = ''
         if login:
-            login_response = self.login('john@example.com')
-            data = json.loads(login_response.data.decode())
-            auth_token = data['auth_token']
+            auth_token = self.get_auth_token()
         if id:
             request = '/bucketlists/{}'.format(id)
         else:
@@ -75,10 +74,7 @@ class BaseTestCase(TestCase):
         return response
 
     def update_bucketlist(self, id, name):
-        self.register('John', 'john@example.com')
-        login_response = self.login('john@example.com')
-        data = json.loads(login_response.data.decode())
-        auth_token = data['auth_token']
+        auth_token = self.get_auth_token()
         request = '/bucketlists/{}'.format(id)
         response = self.client().put(
             request,
@@ -93,12 +89,9 @@ class BaseTestCase(TestCase):
         return response
 
     def delete_bucketlist(self, login=False, id=None):
-        self.register('John', 'john@example.com')
         auth_token = ''
         if login:
-            login_response = self.login('john@example.com')
-            data = json.loads(login_response.data.decode())
-            auth_token = data['auth_token']
+            auth_token = self.get_auth_token()
         request = '/bucketlists/{}'.format(id)
         response = self.client().delete(
             request,
@@ -110,10 +103,7 @@ class BaseTestCase(TestCase):
         return response
 
     def add_bucketlist_item(self, id, name):
-        self.register('John', 'john@example.com')
-        login_response = self.login('john@example.com')
-        data = json.loads(login_response.data.decode())
-        auth_token = data['auth_token']
+        auth_token = self.get_auth_token()
         request = '/bucketlists/{}/items'.format(id)
         response = self.client().post(
             request,
@@ -128,10 +118,7 @@ class BaseTestCase(TestCase):
         return response
 
     def delete_bucketlist_item(self, id, item_id):
-        self.register('John', 'john@example.com')
-        login_response = self.login('john@example.com')
-        data = json.loads(login_response.data.decode())
-        auth_token = data['auth_token']
+        auth_token = self.get_auth_token()
         request = '/bucketlists/{}/items/{}'.format(id, item_id)
         response = self.client().delete(
             request,
@@ -143,10 +130,7 @@ class BaseTestCase(TestCase):
         return response
 
     def update_bucketlist_item(self, id, item_id, name):
-        self.register('John', 'john@example.com')
-        login_response = self.login('john@example.com')
-        data = json.loads(login_response.data.decode())
-        auth_token = data['auth_token']
+        auth_token = self.get_auth_token()
         request = '/bucketlists/{}/items/{}'.format(id, item_id, name)
         response = self.client().put(
             request,
@@ -161,6 +145,30 @@ class BaseTestCase(TestCase):
         )
         return response
 
+    def paginate(self, limit):
+        auth_token = self.get_auth_token()
+        request = '/bucketlists?limit={}'.format(limit)
+        response = self.client().get(
+            request,
+            headers = {
+                'Authorization' : auth_token
+            }
+        )
+        return response
+
+    def search(self):
+        auth_token = self.get_auth_token()
+        request = '/bucketlists/?q=search'
+        response = self.client().get(
+            request,
+            headers = {
+                'Authorization' : auth_token
+            }
+        )
+        print(response.data)
+        return response
+
     def tearDown(self):
-        db.session.close()
-        db.drop_all()
+        with self.app.app_context():
+            db.session.remove()
+            db.drop_all()
