@@ -1,3 +1,5 @@
+from flask import jsonify
+
 def get_user(auth_token):
     from bucketlist.models import User
 
@@ -16,30 +18,14 @@ def get_user(auth_token):
         'message': 'Provide a valid auth token'
     }
 
-def doesnt_exist(name):
-    return {
-        'status': 'fail',
-        'message': '{} doesnt exist'.format(name)
-    }
-
-def bucketlist_data(bucketlist):
-    itemscontent = [item_data(item)
-                    for item in bucketlist.items.all()]
-    resp = {
+def bucket_content(bucketlist):
+    items = [item for item in bucketlist.items.all()]
+    response = {
         'id': bucketlist.id,
         'name': bucketlist.name,
-        'items': itemscontent,
+        'items': items,
         'date_created': bucketlist.date_created,
         'date_modified': bucketlist.date_modified,
         'created_by': bucketlist.created_by
     }
-    return resp
-
-def item_data(item):
-    resp = {
-        'id': item.id,
-        'name': item.name,
-        'date_created': item.date_created,
-        'date_modified': item.date_modified,
-        'done': item.done, }
-    return resp
+    return response
