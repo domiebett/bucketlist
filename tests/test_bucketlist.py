@@ -7,52 +7,42 @@ class TestCase(BaseTestCase):
 
     def test_add_bucketlist(self):
         response = self.add_bucketlist('Bucketlist')
-        data = json.loads(response.data.decode())
-        self.assertEqual(len(data), 1)
-        self.assertEqual(data[0]['name'], 'Bucketlist')
         bucketlists = BucketList.query.all()
         self.assertEqual(bucketlists[0].name, 'Bucketlist')
+        self.assertIn('Bucketlist', str(response.data))
+        self.assertEqual(response.status_code, 201)
 
-    def test_get_bucketlists(self):
+    def test_get_all_bucketlists(self):
         self.add_bucketlist('Bucketlist')
         response = self.retrieve_bucketlist(login=True)
-        data = json.loads(response.data.decode())
-        self.assertEqual(data[0]['name'], 'Bucketlist')
-        self.assertEqual(data[0]['id'], 1)
-        self.assertListEqual(data[0]['items'], [])
-        self.assertEqual(data[0]['created_by'], 'john@example.com')
-        self.assertTrue(data[0]['date_modified'])
-        self.assertTrue(data[0]['date_created'])
+        self.assertIn('Bucketlist', str(response.data))
+        self.assertIn('john@example.com', str(response.data))
+        self.assertEqual(response.status_code, 200)
 
     def test_get_single_bucketlist(self):
         self.add_bucketlist('Bucketlist1')
         self.add_bucketlist('Bucketlist2')
         response = self.retrieve_bucketlist(login=True, id=2)
-        data = json.loads(response.data.decode())
-        self.assertEqual(data['id'], 2)
-        self.assertEqual(data['name'], 'Bucketlist2')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('Bucketlist2', str(response.data))
 
     def test_update_bucketlist(self):
         self.add_bucketlist('Bucketlist1')
         response = self.update_bucketlist(1, "Modified Name")
-        data = json.loads(response.data.decode())
-        self.assertEqual(data['name'], "Modified Name")
-        self.assertNotEqual(data['date_modified'], data['date_created'])
+        self.assertIn('Modified Name', str(response.data))
+        self.assertEqual(response.status_code, 201)
 
     def test_delete_bucketlist(self):
         self.add_bucketlist('Bucketlist1')
         self.add_bucketlist('Bucketlist2')
         self.add_bucketlist('Bucketlist3')
         response = self.delete_bucketlist(login=True, id=2)
-        data = json.loads(response.data.decode())
         bucketlists = BucketList.query.all()
         self.assertEqual(len(bucketlists), 2)
-        self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['message'], 'Successfully deleted.')
+        self.assertIn('Successfully deleted.', str(response.data))
+        self.assertEqual(response.status_code, 410)
 
     def test_login_is_required(self):
         response = self.retrieve_bucketlist()
-        data = json.loads(response.data.decode())
-        self.assertEqual(data['status'], 'fail')
-        self.assertEqual(data['message'],
-                         'Provide a valid auth token')
+        self.assertIn('Provide a valid auth token', str(response.data))
+        self.assertEqual(response.status_code, 401)
