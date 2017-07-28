@@ -1,6 +1,5 @@
-from flask import request, jsonify, abort
+from flask import request, abort
 from flask_restplus import Resource
-from flask_paginate import Pagination
 from bucketlist.models import User, BucketList, ListItem
 from bucketlist.lib.serializers import api
 from bucketlist.lib.tools import get_user, bucket_content
