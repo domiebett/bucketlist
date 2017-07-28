@@ -17,6 +17,10 @@ You also need to install postgres database. You can install it from [here](https
 
 > ``` psql ```
 
+If you get an error stating your username doesnt exist:
+
+> ``` sudo -u postgres -i ``` then ``` psql ``` once again
+
 > ``` CREATE ROLE flask WITH LOGIN ```
 
 > ``` CREATE DATABASE bucketlist_api OWNER flask ```
