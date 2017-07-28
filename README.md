@@ -11,44 +11,48 @@ You also need to install postgres database. You can install it from [here](https
 
 ### Install virtualenv
 
-``` pip install virtualenv ```
+> ``` pip install virtualenv ```
 
 ### Create a postgres database. Go to terminal and:
 
-``` psql ```
-``` CREATE ROLE flask WITH LOGIN ```
-``` CREATE DATABASE bucketlist_api OWNER flask ```
+> ``` psql ```
+> ``` CREATE ROLE flask WITH LOGIN ```
+> ``` CREATE DATABASE bucketlist_api OWNER flask ```
 
 ### Create a folder named webapps in your home directory and navigate into it.
 
-``` mkdir ~/webapps ```
-``` cd ~/webapps ```
+> ``` mkdir ~/webapps ```
+
+>``` cd ~/webapps ```
 
 ### Create a virtual environment for this project and activate it.
 
-``` virtualenv --python=python3 bucket_venv ```
-``` source bucket_venv/bin/activate ```
+> ``` virtualenv --python=python3 bucket_venv ```
+
+> ``` source bucket_venv/bin/activate ```
 
 ### Clone this repo.
 
-``` git clone https://github.com/DomieBett/bucketlist.git ```
+> ``` git clone https://github.com/DomieBett/bucketlist.git ```
 
 ### Navigate into project folder.
 
-``` cd bucketlist ```
+> ``` cd bucketlist ```
 
 ### Install requirements.
 
-``` pip install -r requirements.txt ```
+> ``` pip install -r requirements.txt ```
 
 ### Run the database_migrations.
 
-``` python manage.py db init ```
-``` python manage.py db migrate ```
-``` python manage.py db upgrade ```
+> ``` python manage.py db init ```
+
+> ``` python manage.py db migrate ```
+
+> ``` python manage.py db upgrade ```
 
 ### Run the server
 
-``` python manage.py runserver ```
+> ``` python manage.py runserver ```
 
 You can now access the api at the url http://127.0.0.1:5000
