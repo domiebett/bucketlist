@@ -16,7 +16,9 @@ You also need to install postgres database. You can install it from [here](https
 ### Create a postgres database. Go to terminal and:
 
 > ``` psql ```
+
 > ``` CREATE ROLE flask WITH LOGIN ```
+
 > ``` CREATE DATABASE bucketlist_api OWNER flask ```
 
 ### Create a folder named webapps in your home directory and navigate into it.
