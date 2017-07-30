@@ -21,9 +21,9 @@ If you get an error stating your username doesnt exist:
 
 > ``` sudo -u postgres -i ``` then ``` psql ``` once again
 
-> ``` CREATE ROLE flask WITH LOGIN ```
+> ``` CREATE ROLE flask WITH LOGIN; ```
 
-> ``` CREATE DATABASE bucketlist_api OWNER flask ```
+> ``` CREATE DATABASE bucketlist_api OWNER flask; ```
 
 ### Create a folder named webapps in your home directory and navigate into it.
 
@@ -62,3 +62,7 @@ If you get an error stating your username doesnt exist:
 > ``` python manage.py runserver ```
 
 You can now access the api at the url http://127.0.0.1:5000
+
+## Author:
+
+Dominic Kipchumba Bett.
