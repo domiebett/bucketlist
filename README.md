@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/DomieBett/bucketlist.svg?branch=master)](https://travis-ci.org/DomieBett/bucketlist)
+[![Build Status](https://travis-ci.org/DomieBett/bucketlist.svg?branch=develop)](https://travis-ci.org/DomieBett/bucketlist) [![Coverage 
+Status](https://coveralls.io/repos/github/DomieBett/bucketlist/badge.svg?branch=develop)](https://coveralls.io/github/DomieBett/bucketlist?branch=develop)
 
 # Bucket List Api.
 This is an application web api application used to store user bucketlist. People often have things they wish to 
