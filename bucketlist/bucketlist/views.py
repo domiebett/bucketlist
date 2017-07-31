@@ -47,6 +47,7 @@ class BucketLists(Resource):
         # 404 error if bucketlists dont exist for user
         if not bucketlists:
             abort(404)
+            return {'message' : "You have no bucketlists"}
 
         # returns a response with all bucketlists.
         response = []
