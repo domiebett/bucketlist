@@ -1,8 +1,8 @@
 from flask import request, jsonify
-from flask import Flask
-from flask_restplus import Api, Resource
+from flask_restplus import Resource
 from bucketlist.models import User
 from bucketlist.lib.serializers import api
+from bucketlist.lib.tools import invalid_email
 from bucketlist.lib.serializers import registration_input,\
     log_in_input
 
@@ -16,31 +16,41 @@ class Register(Resource):
     @api.expect(registration_input)
     def post(self):
 
-        """Receives post request with name, password and email, registers user
-        and returns auth_token"""
-
-        post_data = request.get_json()
-        if not post_data.get('email'):
-            return jsonify({
-                'status': 'fail',
-                'message': 'Please enter an email to proceed'
-            })
-
-        user = User.query.filter_by(email=post_data.get('email')).first()
-        if user:
-            response = {
-                'status': 'fail',
-                'message': 'User already exists. Please Log in.',
-            }
-            return jsonify(response)
-
+        """Receives post request and registers user."""
         try:
-            name = post_data.get('username')
+            # Retrieve emai, name and password
+            post_data = request.get_json()
+            if not post_data.get('email'):
+
+                return jsonify({
+                    'status': 'fail',
+                    'message': 'Please enter an email to proceed'
+                })
+
+            # Validate email
+            if invalid_email(post_data.get('email')):
+                return jsonify({
+                    'status': 'fail',
+                    'message': 'Please enter a valid email'
+                })
+
+            # Check if user already exists.
+            user = User.query.filter_by(email=post_data.get('email')).first()
+            if user:
+                response = {
+                    'status': 'fail',
+                    'message': 'User already exists. Please Log in.',
+                }
+                return jsonify(response)
+
+            # Add user with the details to the db.
+            name = post_data.get('name')
             email = post_data.get('email')
             password = post_data.get('password')
             user = User(name, email, password)
             user.save()
 
+            # Generate an auth_token and return it in response.
             auth_token = user.encode_auth_token(user.id)
             response = {
                 'status': 'success',
@@ -67,11 +77,15 @@ class Login(Resource):
         for user to login to program with."""
 
         post_data = request.get_json()
+
         try:
+            # Search for user with email.
             email = post_data.get('email')
             password = post_data.get('password')
             user = User.query.filter_by(
                 email=email).first()
+
+            # Validate that user exists and password is correct.
             if user and user.is_correct_password(password):
                 auth_token = user.encode_auth_token(user.id)
                 if auth_token:
@@ -84,12 +98,13 @@ class Login(Resource):
             else:
                 return jsonify({
                     'status': 'fail',
-                    "message": "Access Denied. Login Again"
+                    "message": "Invalid email or password. Please"
+                               " confirm the data entered and try again"
                 })
         except Exception as e:
-            print(e)
             responseObject = {
                 'status': 'fail',
-                'message': 'Try again'
+                'message': 'There was an error with your login.'
+                           'Please check that all fields are correct'
             }
             return jsonify(responseObject)
