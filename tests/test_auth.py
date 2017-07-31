@@ -34,4 +34,11 @@ class TestRegister(BaseTestCase):
         data = json.loads(response.data.decode())
         self.assertEqual(data['status'], 'fail')
         self.assertEqual(data['message'],
-                         'Access Denied. Login Again')
+                         'Invalid email or password. Please confirm'
+                         ' the data entered and try again')
+
+    def test_rejects_invalid_email(self):
+        response = self.register("Just a guy", "wrongemail")
+        data = json.loads(response.data.decode())
+        self.assertEqual(data['status'], 'fail')
+        self.assertEqual(data['message'], 'Please enter a valid email')
