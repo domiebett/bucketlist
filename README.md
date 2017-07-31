@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/DomieBett/bucketlist.svg?branch=master)](https://travis-ci.org/DomieBett/bucketlist)
+
 # Bucket List Api.
 This is an application web api application used to store user bucketlist. People often have things they wish to 
 do before they pass on. This application gives them space to document these things and see how much they have achieved.
