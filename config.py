@@ -1,11 +1,10 @@
 import os
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-APP_CONFIG = os.environ.get("APP_CONFIG")
-
 class Config:
     APP_NAME = "BucketList"
-    SECRET_KEY = os.environ.get("SECRET_KEY") or "hiddenkey"
+    SECRET_KEY = os.environ.get("SECRET_KEY") or\
+                 "the$weird%key#that@should!not^be&guessed"
 
 class TestConfig(Config):
     DEBUG = True
