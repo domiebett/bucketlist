@@ -46,7 +46,7 @@ class BaseTestCase(TestCase):
     def add_bucketlist(self, name):
         auth_token = self.get_auth_token()
         response = self.client().post(
-            '/bucketlists/',
+            '/api/v1/bucketlists/',
             data=json.dumps({
                 'name': name
             }),
@@ -62,9 +62,9 @@ class BaseTestCase(TestCase):
         if login:
             auth_token = self.get_auth_token()
         if id:
-            request = '/bucketlists/{}'.format(id)
+            request = '/api/v1/bucketlists/{}'.format(id)
         else:
-            request = '/bucketlists/'
+            request = '/api/v1/bucketlists/'
         response = self.client().get(
             request,
             headers={
@@ -75,7 +75,7 @@ class BaseTestCase(TestCase):
 
     def update_bucketlist(self, id, name):
         auth_token = self.get_auth_token()
-        request = '/bucketlists/{}'.format(id)
+        request = '/api/v1/bucketlists/{}'.format(id)
         response = self.client().put(
             request,
             data=json.dumps({
@@ -92,7 +92,7 @@ class BaseTestCase(TestCase):
         auth_token = ''
         if login:
             auth_token = self.get_auth_token()
-        request = '/bucketlists/{}'.format(id)
+        request = '/api/v1/bucketlists/{}'.format(id)
         response = self.client().delete(
             request,
             headers={
@@ -104,7 +104,7 @@ class BaseTestCase(TestCase):
 
     def add_bucketlist_item(self, id, name):
         auth_token = self.get_auth_token()
-        request = '/bucketlists/{}/items'.format(id)
+        request = '/api/v1/bucketlists/{}/items'.format(id)
         response = self.client().post(
             request,
             data = json.dumps({
@@ -119,7 +119,7 @@ class BaseTestCase(TestCase):
 
     def delete_bucketlist_item(self, id, item_id):
         auth_token = self.get_auth_token()
-        request = '/bucketlists/{}/items/{}'.format(id, item_id)
+        request = '/api/v1/bucketlists/{}/items/{}'.format(id, item_id)
         response = self.client().delete(
             request,
             headers = {
@@ -131,7 +131,7 @@ class BaseTestCase(TestCase):
 
     def update_bucketlist_item(self, id, item_id, name):
         auth_token = self.get_auth_token()
-        request = '/bucketlists/{}/items/{}'.format(id, item_id, name)
+        request = '/api/v1/bucketlists/{}/items/{}'.format(id, item_id, name)
         response = self.client().put(
             request,
             headers = {
@@ -147,7 +147,7 @@ class BaseTestCase(TestCase):
 
     def paginate(self, limit):
         auth_token = self.get_auth_token()
-        request = '/bucketlists?limit={}'.format(limit)
+        request = '/api/v1/bucketlists?limit={}'.format(limit)
         response = self.client().get(
             request,
             headers = {
@@ -158,7 +158,7 @@ class BaseTestCase(TestCase):
 
     def search(self):
         auth_token = self.get_auth_token()
-        request = '/bucketlists/?q=search'
+        request = '/api/v1/bucketlists/?q=search'
         response = self.client().get(
             request,
             headers = {
