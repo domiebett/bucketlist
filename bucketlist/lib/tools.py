@@ -1,5 +1,3 @@
-from flask import jsonify
-
 def get_user(auth_token):
     from bucketlist.models import User
 
@@ -29,3 +27,13 @@ def bucket_content(bucketlist):
         'created_by': bucketlist.created_by
     }
     return response
+
+def invalid_email(email):
+    if '@' not in email:
+        return True
+    split_email = email.split('@')
+    if len(split_email) > 2:
+        return True
+    if '.' not in split_email[1]:
+        return True
+    return False
