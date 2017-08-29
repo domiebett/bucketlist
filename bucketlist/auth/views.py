@@ -2,7 +2,7 @@ from flask import request, jsonify
 from flask_restplus import Resource
 from bucketlist.models import User
 from bucketlist.lib.serializers import api
-from bucketlist.lib.tools import invalid_email
+from bucketlist.lib.tools import invalid_email, get_user
 from bucketlist.lib.serializers import registration_input,\
     log_in_input
 
@@ -108,3 +108,23 @@ class Login(Resource):
                            'Please check that all fields are correct'
             }
             return jsonify(responseObject)
+
+@ns.route('/test_login')
+class TestLogin(Resource):
+    def get(self):
+        auth_token = request.headers.get("Authorization")
+        user = get_user(auth_token)
+        if isinstance(user, User):
+            response_obj = {
+                'status': 'success',
+                'message': 'User is logged in',
+            }
+            return response_obj, 200
+
+        else:
+            response_obj = {
+                'status': 'fail',
+                'message': 'user is not logged in'
+            }
+            return response_obj, 401
+
