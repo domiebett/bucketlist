@@ -29,7 +29,7 @@ bucket_list_items = api.model('bucket_list_items',{
     'done': fields.Boolean(required=True, description='status of bucketlist item'),
 })
 
-bucket_list = api.model('bucketlists', {
+bucket_list = api.model('bucketlist', {
     'id': fields.Integer(readOnly=True,
                          description='identifier for the bucketlis'),
     'name': fields.String(required=True, description='name of the bucket lis'),
@@ -39,4 +39,17 @@ bucket_list = api.model('bucketlists', {
     'date_modified': fields.DateTime,
     'created_by': fields.String(required=True,
                                 description='user email for the bucketlist owner')
+})
+
+links = api.model('links', {
+    'text': fields.String(readOnly=True,
+                        description="Previous button"),
+    'id': fields.String(readOnly=True,
+                          description="Next button")
+})
+
+bucket_lists = api.model('bucketlists', {
+    'bucketlists': fields.List(fields.Nested(bucket_list),
+                              description='All Bucketlists'),
+    'links': fields.List(fields.Nested(links))
 })
