@@ -18,6 +18,7 @@ class User(db.Model):
     bucketlists = db.relationship('BucketList', backref='owner', lazy='dynamic',
                                   cascade='all, delete-orphan')
 
+    # Initialise User model.
     def __init__(self, username, email, password):
         self.username = username
         self.email = email
