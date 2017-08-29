@@ -4,7 +4,7 @@ from bucketlist.models import User, BucketList, ListItem
 from bucketlist.lib.serializers import api
 from bucketlist.lib.tools import get_user, bucket_content
 from bucketlist.lib.serializers import bucket_list_input,\
-    bucket_item_input, bucket_list_items, bucket_list
+    bucket_item_input, bucket_list_items, bucket_list, bucket_lists
 from bucketlist.lib.parsers import paginate_or_search
 
 ns = api.namespace('api/v1/bucketlists', description='Bucketlist related operations')
@@ -12,6 +12,7 @@ ns = api.namespace('api/v1/bucketlists', description='Bucketlist related operati
 @ns.route('/')
 @api.doc(params={'q': 'search string'})
 @api.doc(params={'limit': 'search limit'})
+@api.doc(params={'page': 'page'})
 class BucketLists(Resource):
 
     """Retrieves and adds bucketlists."""
@@ -19,7 +20,7 @@ class BucketLists(Resource):
     @api.header('Authorization', 'JWT Token', required=True)
     @api.response(404, 'bucketlist not found')
     @api.response(401, 'Unauthorised access')
-    @api.marshal_list_with(bucket_list)
+    @api.marshal_list_with(bucket_lists)
     def get(self):
 
         """Receives get request and returns all bucketlists"""
@@ -50,7 +51,8 @@ class BucketLists(Resource):
             return {'message' : "You have no bucketlists"}
 
         # returns a response with all bucketlists.
-        response = []
+        response_list = []
+        response = {}
         for bucketlist in bucketlists.items:
             items = [item for item in bucketlist.items.all()]
             resp = {
@@ -61,7 +63,19 @@ class BucketLists(Resource):
                 'date_modified': bucketlist.date_modified,
                 'created_by': bucketlist.created_by
             }
-            response.append(resp)
+            response_list.append(resp)
+            response["bucketlists"] = response_list
+
+            prev_page, next_page = None, None
+            if bucketlists.page > 1:
+                prev_page = page - 1
+            if bucketlists.page < bucketlists.pages:
+                next_page = page + 1
+            response["links"] = [
+                { "text": "previous", "id": prev_page },
+                { "text": "next", "id": next_page },
+                { "text": "current", "id": page }
+            ]
         return response, 200
 
     @api.header('Authorization', 'JWT Token', required=True)
@@ -183,7 +197,7 @@ class SingleBucketList(Resource):
                 'message': 'Successfully deleted.',
                 'id': bucketlist.id,
             }
-            return response, 410
+            return response, 200
 
         else:
             abort(401, user)
@@ -285,7 +299,7 @@ class BucketListItems(Resource):
                 'status': 'success',
                 'message': 'Successfully deleted.',
             }
-            return response_obj, 410
+            return response_obj, 200
 
         else:
             abort(401, user)
