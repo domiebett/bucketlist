@@ -92,7 +92,9 @@ class Login(Resource):
                     responseObject = {
                         'status': 'success',
                         'message': 'Successfully logged in.',
-                        'auth_token': auth_token.decode()
+                        'auth_token': auth_token.decode(),
+                        'user': user.username
+
                     }
                     return jsonify(responseObject)
             else:
