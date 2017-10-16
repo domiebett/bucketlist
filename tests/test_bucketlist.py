@@ -40,7 +40,7 @@ class TestCase(BaseTestCase):
         bucketlists = BucketList.query.all()
         self.assertEqual(len(bucketlists), 2)
         self.assertIn('Successfully deleted.', str(response.data))
-        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.status_code, 200)
 
     def test_login_is_required(self):
         response = self.retrieve_bucketlist()

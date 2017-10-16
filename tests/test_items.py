@@ -21,7 +21,7 @@ class TestCase(BaseTestCase):
         list_items = ListItem.query.all()
         self.assertEqual(len(list_items), 1)
         self.assertIn("Successfully deleted.", str(response.data))
-        self.assertEqual(response.status_code, 410)
+        self.assertEqual(response.status_code, 200)
 
     def test_item_is_updated(self):
         self.add_bucketlist("Bucketlist1")
