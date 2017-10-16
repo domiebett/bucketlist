@@ -7,7 +7,7 @@ from bucketlist.lib.serializers import bucket_list_input,\
     bucket_item_input, bucket_list_items, bucket_list, bucket_lists
 from bucketlist.lib.parsers import paginate_or_search
 
-ns = api.namespace('api/v1/bucketlists', description='Bucketlist related operations')
+ns = api.namespace('bucketlists', description='Bucketlist related operations')
 
 @ns.route('/')
 @api.doc(params={'q': 'search string'})
