@@ -30,3 +30,8 @@ class TestCase(BaseTestCase):
         data = json.loads(response.data.decode())
         self.assertIn("Sky dive", str(response.data))
         self.assertNotEqual(data['date_modified'], data['date_created'])
+
+    def test_first_letter_is_capitalised(self):
+        self.add_bucketlist("Bucketlist1")
+        response = self.add_bucketlist_item(1, "run a marathon")
+        self.assertIn('Run a marathon', str(response.data))
