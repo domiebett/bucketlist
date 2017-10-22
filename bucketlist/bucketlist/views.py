@@ -1,3 +1,4 @@
+import string
 from flask import request, abort
 from flask_restplus import Resource
 from bucketlist.models import User, BucketList, ListItem
@@ -40,10 +41,14 @@ class BucketLists(Resource):
         # Returns paginated or paginated search results
         if q:
             bucketlists = user.bucketlists.filter(
-                BucketList.name.ilike('%'+q+'%'))\
+                BucketList.name.ilike('%'+q+'%')) \
+                .order_by(BucketList.date_modified.desc())\
                 .paginate(page, limit, False)
         else:
-            bucketlists = user.bucketlists.paginate(page, limit, False)
+            bucketlists = user.bucketlists\
+                .order_by(BucketList.date_modified.desc())\
+                .paginate(page, limit, False)
+
 
         # 404 error if bucketlists dont exist for user
         if not bucketlists:
@@ -94,7 +99,8 @@ class BucketLists(Resource):
 
             # Fetches bucketlist name from request, and creates it.
             post_data = request.get_json()
-            bucketlist = BucketList(name=post_data.get('name'), owner=user,
+            name = string.capwords(post_data.get('name'))
+            bucketlist = BucketList(name=name, owner=user,
                                     created_by=user.email)
             bucketlist.save()
 
@@ -165,7 +171,8 @@ class SingleBucketList(Resource):
                 abort(404)
 
             # Modify bucketlist name.
-            bucketlist.modify_name(put_data['name'])
+            name = string.capwords(put_data['name'])
+            bucketlist.modify_name(name)
             bucketlist = user.bucketlists.filter_by(id=id).first()
             return bucket_content(bucketlist), 201
 
@@ -226,7 +233,10 @@ class BucketListItem(Resource):
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
                 abort(404)
-            list_item = ListItem(name=post_data.get('name'),
+
+            name = post_data.get('name')
+            name = name[0].upper() + name[1:]
+            list_item = ListItem(name=name,
                                  bcktlst=bucketlist)
             list_item.save()
 
@@ -254,6 +264,8 @@ class BucketListItems(Resource):
 
         if isinstance(user, User):
             put_data = request.get_json()
+            name = put_data.get('name')
+            name = name[0].upper() + name[1:]
             bucketlist = user.bucketlists.filter_by(id=id).first()
             if not bucketlist:
                 abort(404, "Bucketlist doesnt exist")
@@ -265,7 +277,7 @@ class BucketListItems(Resource):
 
             # Modify bucketlist item.
             if put_data['name']:
-                item.modify_name(put_data['name'])
+                item.modify_name(name)
             if put_data['done']:
                 item.complete_activity()
             item = bucketlist.items.filter_by(id=item_id).first()

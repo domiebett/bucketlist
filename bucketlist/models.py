@@ -11,9 +11,9 @@ class User(db.Model):
     __tablename__ = "user"
 
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(200), index=True, default="Unknown")
-    email = db.Column(db.String(50), index=True, unique=True)
-    _password = db.Column(db.String(128))
+    username = db.Column(db.String(200), index=True, nullable=False)
+    email = db.Column(db.String(50), index=True, unique=True, nullable=False)
+    _password = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     bucketlists = db.relationship('BucketList', backref='owner', lazy='dynamic',
                                   cascade='all, delete-orphan')
@@ -81,8 +81,8 @@ class BucketList(db.Model):
     __tablename__ = "bucketlist"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(80), default="My BucketList")
-    created_by = db.Column(db.String(200))
+    name = db.Column(db.String(80), nullable=False)
+    created_by = db.Column(db.String(200), nullable=False)
     date_created = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     date_modified = db.Column(db.DateTime, default=datetime.datetime.utcnow())
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
@@ -108,7 +108,7 @@ class ListItem(db.Model):
     __tablename__ = "listitem"
 
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(400))
+    name = db.Column(db.String(400), nullable=False)
     date_created = db.Column(db.DateTime(), default=datetime.datetime.utcnow())
     date_modified = db.Column(db.DateTime(), default=datetime.datetime.utcnow())
     done = db.Column(db.Boolean(), default=False)
